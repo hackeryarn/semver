@@ -44,3 +44,24 @@ main =
       it "parses release with leading zeroes as string" $ do
         let r = maybeSuccess $ psv "1.0.0-01"
         r `shouldBe` Just (SemVer 1 0 0 [NOSS "01"] [])
+    describe "Compares semvers" $ do
+      it "handles major version difference" $ do
+        let big = SemVer 2 1 1 [] []
+            little = SemVer 1 1 1 [] []
+        big > little `shouldBe` True
+      it "handles patch version difference" $ do
+        let big = SemVer 1 1 2 [] []
+            little = SemVer 1 1 1 [] []
+        big > little `shouldBe` True
+      it "handles number release difference" $ do
+        let big = SemVer 1 1 1 [NOSI 2] []
+            little = SemVer 1 1 1 [NOSI 1] []
+        big > little `shouldBe` True
+      it "handles string release difference" $ do
+        let big = SemVer 1 1 1 [NOSS "beta"] []
+            little = SemVer 1 1 1 [NOSS "alpha"] []
+        big > little `shouldBe` True
+      it "handles different number of releases" $ do
+        let big = SemVer 1 1 1 [NOSI 2] []
+            little = SemVer 1 1 1 [NOSI 1, NOSS "beta"] []
+        big > little `shouldBe` True

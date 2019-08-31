@@ -16,6 +16,12 @@ data NumberOrString
  | NOSI Integer
  deriving (Eq, Show)
 
+instance Ord NumberOrString where
+  compare (NOSI _) (NOSS _) = GT
+  compare (NOSS _) (NOSI _) = LT
+  compare (NOSS x) (NOSS y) = compare x y
+  compare (NOSI x) (NOSI y) = compare x y
+
 type Major = Integer
 type Minor = Integer
 type Patch = Integer
@@ -25,6 +31,12 @@ type Metadata = [NumberOrString]
 data SemVer =
   SemVer Major Minor Patch Release Metadata
   deriving (Eq, Show)
+
+instance Ord SemVer where
+  compare (SemVer majorX minorX patchX releaseX _) (SemVer majorY minorY patchY releaseY _) =
+    compare majorX majorY <> compare minorX minorY <> compare patchX patchY <>
+    compare (length releaseY) (length releaseX) <>
+    foldr1 (<>) (zipWith compare releaseX releaseY)
 
 parseSemVerNumber :: Parser Integer
 parseSemVerNumber = do
