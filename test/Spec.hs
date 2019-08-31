@@ -37,3 +37,10 @@ main =
                           [ NOSS "oof"
                           , NOSS "sha"
                           , NOSS "41af286"])
+    describe "Does not allow leading zeros" $ do
+      it "errors if major version has a leading zero" $ do
+        let r = maybeSuccess $ psv "01.0.0"
+        r `shouldBe` Nothing
+      it "parses release with leading zeroes as string" $ do
+        let r = maybeSuccess $ psv "1.0.0-01"
+        r `shouldBe` Just (SemVer 1 0 0 [NOSS "01"] [])
