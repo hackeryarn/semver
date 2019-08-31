@@ -1,5 +1,6 @@
 module Semver
   ( SemVer (..)
+  , NumberOrString (..)
   , parseSemVer
   , someFunc
   ) where
@@ -35,13 +36,24 @@ parsePatch :: Parser Patch
 parsePatch =  read <$> some digit
 
 parseNumberOrString :: Parser NumberOrString
-parseNumberOrString = try (NOSI . read <$> some digit) <|> (NOSS <$> some alphaNum)
+parseNumberOrString =
+  try (NOSI . read <$> some digit <* notFollowedBy letter) <|>
+  (NOSS <$> some alphaNum)
+
+parseDotSeparated :: Parser [NumberOrString]
+parseDotSeparated = do
+  nos <- parseNumberOrString
+  tryNext nos <|> return [nos]
+  where
+    tryNext nos = try (char '.') *> runNext nos
+    runNext nos = (nos :) <$> parseDotSeparated
+
 
 parseRelease :: Parser Release
-parseRelease = many parseNumberOrString
+parseRelease = try (char '-') *> parseDotSeparated <|> return []
 
 parseMetadata :: Parser Metadata
-parseMetadata = many parseNumberOrString
+parseMetadata = try (char '+') *> parseDotSeparated <|> return []
 
 parseSemVer :: Parser SemVer
 parseSemVer =
